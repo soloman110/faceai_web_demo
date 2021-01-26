@@ -1,0 +1,146 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+    <link rel="stylesheet" type="text/css" media="screen" href="/static/imgUploadPlugin1/css/bootstrap-imgupload.min.css">
+
+     <div class="row" id="content">
+        <div class="col-md-8">
+            <div class="form-group" style="min-height: 500px;">
+                <div class="imgupload panel panel-default">
+                    <div class="panel-heading clearfix" style="background-color: #ebf5ee">
+                        <h3 class="panel-title pull-left">Upload image</h3>
+                    </div>
+                    <div class="file-tab panel-body">
+                        <div>
+                            <button type="button" class="btn btn-default btn-file">
+                                <span>찾아보기</span>
+                                <input type="file" name="file-input" id="imgInp">
+                            </button>
+                            <button type="button" class="btn btn-default">Remove</button>
+                            <button onclick="FileUpload()" id="uploadBtn" class="btn btn-primary">이미지 업로드</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3" id="result">
+            <div class="portlet box green">
+                <div class="portlet-title">
+                    <div class="caption">
+                        <i class="fa fa-picture"></i>estimate result
+                    </div>
+                </div>
+                <div class="portlet-body">
+                    <div class="table-scrollable">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr><th>#</th><th>성별</th><th>나이</th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block extra_script%}
+
+<script src="/static/js/utils.js"></script>
+<script src="/static/js/loading.js"></script>
+<script type="text/javascript" src="/static/imgUploadPlugin1/js/bootstrap-imgupload.js"></script>
+<script>
+    var loading = new KZ_Loading({time: 20000, content: '처리 중。。。',});
+
+    function FileUpload() {
+        var form_data = new FormData();
+        var file_info =$('#imgInp')[0].files[0];
+        form_data.append('file',file_info);
+        if(file_info==undefined) {
+            showAlert('파일을 선택하세요');
+            return false
+        }
+
+        loading.show();
+        $.ajax({
+            url:'/upload_ajax/',
+            type:'POST',
+            data: form_data,
+            dataType: 'JSON',
+            processData: false,  // tell jquery not to process the data
+            contentType: false, // tell jquery not to set contentType
+            success: function(data) {
+                if(data.result == "ok") {
+                    $("#uploadBtn").attr("disabled",true);
+                    showResult(data.data);
+                } else {
+                    showAlert(data.errormsg);
+                    clearResult();
+                }
+                loading.hide();
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                showAlert("실패："+xhr.responseText );
+                clearResult();
+                loading.hide();
+            }
+        });
+    }
+
+    function clearResult() {
+        $("#result").hide();
+    }
+
+    function showResult(data) {
+        //Start: 이미지 표시 시작
+        var $fileTab = $(".file-tab");
+        $fileTab.find(".btn span").text("찾아보기");
+        $fileTab.find("input").val("");
+        $fileTab.find("img").remove();
+        $fileTab.append(getHtmlImage(data.img_path));
+        //End: 이미지 표시 끝
+
+         var estimated_list = data.estimated_list;
+        if(estimated_list.length == 0) {
+            showAlert("안면인식을 못했습니다.");
+            clearResult();
+            return;
+        }
+        $('tbody').empty();
+        $.each(estimated_list, function(i,e) {
+            var gender = e.gender == "M" ? '남' : '녀';
+            var $tr = $("<tr>");
+            $tr.append("<td>{0}</td> <td>{1}</td><td>{2}</td>".format(i, gender, e.age));
+            $('tbody').append($tr);
+        });
+        $('#result').show();
+    }
+
+    function getHtmlImage(src) {
+        return "<img src='" + src + "' alt='Image preview' class='img-thumbnail'>";
+    }
+
+    function showAlert(msg) {
+        $("#msgContent").html(msg);
+        $('#myModal').modal("show");
+    }
+
+    $(function() {
+        $('.imgupload').imgupload({
+            allowedFormats: [ "jpg", "jpeg", "png", "gif" ],
+            onchange: function(el) {
+                $("#uploadBtn").attr("disabled",false);
+                clearResult();
+            },
+            onremove: function(el) {
+                clearResult();
+            }
+        });
+        clearResult();
+	});
+</script>
+
+{% endblock %}

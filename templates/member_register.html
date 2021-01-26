@@ -1,0 +1,432 @@
+{% extends "base_generic.html" %}
+<!--
+https://examples.bootstrap-table.com/#view-source
+-->
+{% block content %}
+
+    <style>
+
+    .tool-bar-btn {
+		height: 30px;
+		font-weight: bold;
+		font-size: 12px;
+		text-shadow: none;
+		min-width: 100px;
+		border-radius: 50px;
+		line-height: 13px;
+    }
+    .modal-dialog {
+        width:450px;
+    }
+    .form-control{
+		height: 40px;
+		box-shadow: none;
+		color: #969fa4;
+	}
+	.form-control:focus{
+		border-color: #5cb85c;
+	}
+    .form-control, .btn{
+        border-radius: 3px;
+    }
+	.signup-form{
+		width: 400px;
+		margin: 0 auto;
+		padding: 30px 0;
+	}
+	.signup-form h2{
+		color: #636363;
+        margin: 0 0 15px;
+		position: relative;
+		text-align: center;
+    }
+    .modal-header h2{
+        text-align: center;
+        color: #636363;
+    }
+	.signup-form h2:before, .signup-form h2:after{
+		content: "";
+		height: 2px;
+		width: 30%;
+		background: #d4d4d4;
+		position: absolute;
+		top: 50%;
+		z-index: 2;
+	}
+	.signup-form h2:before{
+		left: 0;
+	}
+	.signup-form h2:after{
+		right: 0;
+	}
+    .signup-form .hint-text{
+		color: #999;
+		margin-bottom: 30px;
+		text-align: center;
+	}
+    .signup-form form{
+		color: #999;
+		border-radius: 3px;
+    	margin-bottom: 15px;
+        background: #f2f3f7;
+        box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+        padding: 30px;
+    }
+	.signup-form .form-group{
+		margin-bottom: 20px;
+	}
+	.signup-form input[type="checkbox"]{
+		margin-top: 3px;
+	}
+	.signup-form .btn{
+        font-size: 16px;
+        font-weight: bold;
+		min-width: 140px;
+        outline: none !important;
+    }
+	.signup-form .row div:first-child{
+		padding-right: 10px;
+	}
+	.signup-form .row div:last-child{
+		padding-left: 10px;
+	}
+    .signup-form a{
+		color: #fff;
+		text-decoration: underline;
+	}
+    .signup-form a:hover{
+		text-decoration: none;
+	}
+	.signup-form form a{
+		color: #5cb85c;
+		text-decoration: none;
+	}
+	.signup-form form a:hover{
+		text-decoration: underline;
+	}
+
+    .bootstrap-table {
+        width:85%;
+    }
+    #toolbar {
+		float: left;
+		left: 280px;
+	}
+    .fileupload-add1{
+        position:relative;
+        overflow: hidden;
+    }
+
+    .fileupload-add1 input[type=file] {
+		position: absolute;
+        top: 0;
+        right: 0;
+		min-width: 100%;
+		min-height: 100%;
+		margin: 0;
+		padding: 0;
+		font-size: 20px;
+		cursor: pointer;
+		filter: alpha(opacity=0);
+	    filter: progid:DXImageTransform.Microsoft.Alpha(opacity=0);
+	    -moz-opacity: 0;
+	    -webkit-opacity: 0;
+	    opacity: 0;
+	    outline: none;
+	    background: none;
+	    z-index: 1;
+	}
+
+    </style>
+
+     <div class="row" id="content">
+        <div class="col-md-12">
+            <div id="toolbar">
+                <button type="button" class="btn btn-info tool-bar-btn" id="regModalBtn"><i class="fa fa-plus"></i> Add New</button>
+                <button type="button" class="btn btn-success tool-bar-btn train" id="train"><i class="fa fa-train"></i> 이지미 적용</button>
+			</div>
+            <table class="beans table is-fullwidth is-hoverable table-responsive  table-striped table-bordered" id="memberTable"
+					data-search="true"
+					data-show-refresh="true"
+                    data-toolbar="#toolbar"
+					data-minimum-count-columns="2"
+					data-pagination="true"
+					data-locale="en-US"/>
+        </div>
+    </div>
+    <!-- Modal for Edit button -->
+    <div class="modal fade" id="regModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h2 class="modal-title" id="myModalLabel">Register</h2>
+                </div>
+
+                <div class="modal-body">
+                    <div class="signup-form">
+                            <div class="form-group">
+                                <input type="text" class="form-control" name="name" placeholder="이름" required="required"/>
+                            </div>
+                            <div class="form-group">
+                                <input type="email" class="form-control" name="email" placeholder="Email" required="required">
+                            </div>
+                             <div class="form-group">
+                                <label>부서</label>
+                                <select class="form-control" id="depSelect">
+                                    {% for dep in depList %}
+                                        <option value="{{ dep.id}}">{{ dep.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <input type="hidden" name="id"/>
+                            <div class="form-group">
+                                <button  id="registerBtn" class="btn btn-success btn-lg btn-block">등록</button>
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End of Modal for Edit button -->
+{% endblock %}
+
+{% block extra_script%}
+
+<script src="/static/js/utils.js"></script>
+<script src="/static/js/loading.js"></script>
+<script src="/static/imgUploadPlugin2/dist/bootstrap-FileUpload.min1.js"></script>
+<script src="/static/bootstrap-table-1.16.0/bootstrap-table.min.js"></script>
+<script src="/static/bootstrap-table-1.16.0/extensions/auto-refresh/bootstrap-table-auto-refresh.min.js"></script>
+<link href="/static/bootstrap-table-1.16.0/bootstrap-table.min.css" rel="stylesheet"></link>
+<link href="/static/imgUploadPlugin2/dist/bootstrap-FileUpload.min1.css" rel="stylesheet"></link>
+
+<script>
+    var loading = new KZ_Loading({time: 20000, content: '처리 중。。。',});
+
+    function showAlert(msg) {
+        $('#myModal').on('show.bs.modal', function () {
+           $("#msgContent").html(msg);
+        });
+        $('#myModal').modal("show");
+    }
+
+    $(function() {
+        $("#memberTable").bootstrapTable("destroy").bootstrapTable({
+            url: "/restful/members",
+            pageSize : 8,
+            detailFormatter: function (index,row, $element){
+                return  createTable(null, row, 1);
+            },
+            onLoadSuccess: function(data) {
+                loading.hide();
+            },
+            onPostBody: function() {
+              var  revmovePreview = function(idx) {
+                  var el = $('#imgUpload{0}'.format(idx)).parents('tr')[0];
+                  $(el).next('.detail-view').detach();
+              }
+              $('[id^="imgUpload"]').each(function(i,e) {
+                    var idx= $(e).attr('memberid');
+                    $(e).bootstrapFileUpload({
+                        url: "/upload_multi_ajax/?id={0}".format(idx),
+                        maxFiles: 5,
+                        multiUpload: true,
+                        onFileAdded: function(id) {
+                            var table =  $('#'+ id).find('.fileupload-preview').detach();
+                            var parentTr = $('#'+ id).parents('tr')[0];
+                            // (image preview is created) ? append table : create preview and append table // 복잡하다...
+                            if($(parentTr).next().attr('class') != 'detail-view') {
+                                var td = $('<td colspan="6"></td>').append(table);
+                                var tr = $('<tr class="detail-view"></tr>').append(td);
+                                $($('#'+ id).parents('tr')[0]).after(tr);
+                            } else {
+                                $(parentTr).next().find('td').append(table);
+                            }
+                        },
+                        onUploadProgress: function(el) {
+                            /*
+                            var td = $('<td colspan="6"></td>').append(el);
+                            var tr = $('<tr></tr>').append(td);
+                            $('.files').append(tr);
+                            //el.fadeIn("slow", "linear");
+                            $('#'+ idx).find('.fileupload-overall-progress').fadeIn("slow", "linear");
+                            //
+                            */
+                        },
+                        onUploadSuccess: function() {
+                            showAlert("succes");
+                            revmovePreview(idx);
+                        },
+                        onUploadReset: function() {
+                            revmovePreview(idx);
+                        }
+                    });
+                });
+            },
+            columns: [
+                {
+                    field: 'name',
+                    title: '이름',
+                    align: 'center',
+                    valign: 'middle',
+                    sortable: true,
+                    formatter: function operateFormatter(value, row, index) {
+                        return [
+                            '<span>' + value + '</span>',
+                        ].join('')
+                    }
+                },
+                {
+                    field: 'department',
+                    title: '부서',
+                    align: 'center',
+                    valign: 'middle',
+                    sortable: true,
+                    formatter: function operateFormatter(value, row, index) {
+                        return [
+                            '<span>' + value.name + '</span>',
+                        ].join('')
+                    }
+                },
+                {
+                    field: 'operate',
+                    title: 'Item Operate',
+                    align: 'center',
+                    //width: 30,
+                    clickToSelect: false,
+                    events: {
+                        'click .edit': function (e, value, row, index) {
+                            showModal('수정', row);
+                        },
+                        'click .remove': function (e, value, row, index) {
+                            ajaxProxy({url:'/restful/members/{0}'.format(row.id), method:'DELETE', data: null, successcb: function(data, textStatus) {
+                                showAlert("OK");
+                                $("#memberTable").bootstrapTable('remove', {
+                                    field: 'id',
+                                    values: [row.id]
+                                })
+                            }});
+                        }
+                    },
+                    formatter:   function(value, row, index) {
+                        return [
+                          '<a class="edit" href="javascript:void(0)" title="edit">',
+                          '<i class="fa fa-edit"></i>',
+                          '</a>  ',
+                          '<a class="remove" href="javascript:void(0)" title="Remove">',
+                          '<i class="fa fa-trash"></i>',
+                          '</a>',
+                        ].join('')
+                    }
+                },
+                {
+                    field: 'created',
+                    title: 'created',
+                    align: 'center',
+                    valign: 'middle',
+                    sortable: true,
+                    formatter: function operateFormatter(value, row, index) {
+                        return [
+                            '<span>' + value + '</span>',
+                        ].join('')
+                    }
+                },
+                {
+                    field: 'imgupload',
+                    title: '이미지 등록',
+                    align: 'center',
+                    //width: "100px",
+                    clickToSelect: false,
+                    events: window.operateEvents,
+                    formatter: function(value, row, index) {
+                         return [
+                            '<div class="fileupload-wrapper">',
+                                '<div id="imgUpload' + row.id + '"' +  ' memberid='+ row.id +'></div>',
+                             '</div>'
+                        ].join('')
+                    }
+                }
+            ],
+            onLoadError: function(){
+                loading.hide();
+            }
+        }).bootstrapTable("hideLoading");
+
+        $("#registerBtn").click(function() {
+            var text = $("#registerBtn").text();
+            var httpMethod = (text == '등록') ? 'POST' : 'PUT';
+
+            var id = $("input[name='id']").val();
+            var url = (httpMethod == 'POST') ? '/restful/members/' : '/restful/members/{0}/'.format(id);
+            var depId = $("#depSelect").val();
+            var name = $("input[name='name']").val();
+            var email = $("input[name='email']").val();
+
+            var json = {"name": name, "email": email, "department": depId};
+            if(httpMethod == 'PUT') {
+                json = {"id": id, "name": name, "email": email, "department": depId};
+            }
+            //check data valid....생략
+            ajaxProxy({
+                url: url,
+                method: httpMethod,
+                data: json,
+                successcb: function(data) {
+                    showAlert("성공");
+                    $('#regModal').modal('hide');
+                    if(httpMethod == 'POST') {
+                        $("#memberTable").bootstrapTable('prepend', data);
+                    } else {
+                        $('#memberTable').bootstrapTable('refresh')
+                    }
+                }
+            });
+        });
+
+        //새로운 member 정보 등록  event
+        $("#regModalBtn").click(function() {
+            showModal('등록');
+        });
+        $("#train").click(function() {
+            loading.show();
+            ajaxProxy({
+                url: '/recognize_model_reload',
+                dataType: 'text',
+                successcb: function(data) {
+                    loading.hide();
+                    showAlert("성공");
+                },
+                errorcb: function(xhr, textStatus, errorThrown) {
+                    loading.hide();
+                    showAlert("실패하였습니다: " + JSON.stringify(xhr));
+                }
+            });
+        });
+        function showModal(text, data) {
+            var row = data;
+            $('#regModal').on('show.bs.modal', function () {
+                if(!row) { // 새로등록할 경우 modal 데이터를 clear한다.
+                    $("input[name='name']").val('');
+                    $("input[name='email']").val('');
+                    $("input[name='id']").val('');
+                } else { //수정할 경우 값을 부여
+                    $("input[name='name']").val(row.name);
+                    $("input[name='email']").val(row.email);
+                    $("input[name='id']").val(row.id);
+                    $("#depSelect option").each(function() {
+                        if($(this).val()== row.department.id){
+                            $(this).prop('selected',true);
+                        }
+                    });
+                }
+                $("#registerBtn").text(text);
+                $('#regModal').off('show.bs.modal'); //off를 안하면 여러번 호출이 됨
+            });
+            $('#regModal').modal('show');
+        }
+	});
+
+</script>
+
+{% endblock %}
